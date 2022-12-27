@@ -2,3 +2,5 @@ trimesh>=3.17
 numpy>=1.24
 shapely>=2
 matplotlib>=3.6
+networkx>=2.8.8
+Rtree>=1
