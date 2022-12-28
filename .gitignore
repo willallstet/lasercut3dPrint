@@ -1,3 +1,4 @@
 *.stl
 *.blend
 *.blend1
+frontend/node_modules/
