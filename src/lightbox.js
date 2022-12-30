@@ -1,46 +1,34 @@
 import * as THREE from "three"
+import React, { useState } from "react"
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls"
 import { OBJLoader } from "three/examples/jsm/loaders/OBJLoader"
 import { STLLoader } from "three/examples/jsm/loaders/STLLoader"
-
-const fitCameraToObject = function (camera, object, offset, controls) {
-  offset = offset || 1.25
+function fitCameraToObject(camera, object, offset) {
+  offset = offset || 1.5
 
   const boundingBox = new THREE.Box3()
 
-  // get bounding box of object - this will be used to setup controls and camera
   boundingBox.setFromObject(object)
 
-  const center = boundingBox.getCenter()
+  const center = boundingBox.getCenter(new THREE.Vector3())
+  const size = boundingBox.getSize(new THREE.Vector3())
 
-  const size = boundingBox.getSize()
+  const startDistance = center.distanceTo(camera.position)
+  // here we must check if the screen is horizontal or vertical, because camera.fov is
+  // based on the vertical direction.
+  const endDistance =
+    camera.aspect > 1
+      ? (size.y / 2 + offset) / Math.abs(Math.tan(camera.fov / 2))
+      : (size.y / 2 + offset) /
+        Math.abs(Math.tan(camera.fov / 2)) /
+        camera.aspect
 
-  // get the max side of the bounding box (fits to width OR height as needed )
-  const maxDim = Math.max(size.x, size.y, size.z)
-  const fov = camera.fov * (Math.PI / 180)
-  let cameraZ = Math.abs((maxDim / 4) * Math.tan(fov * 2))
-
-  cameraZ *= offset // zoom out a little so that objects don't fill the screen
-
-  camera.position.z = cameraZ
-
-  const minZ = boundingBox.min.z
-  const cameraToFarEdge = minZ < 0 ? -minZ + cameraZ : cameraZ - minZ
-
-  camera.far = cameraToFarEdge * 3
-  camera.updateProjectionMatrix()
-
-  if (controls) {
-    // set camera to rotate around center of loaded object
-    controls.target = center
-
-    // prevent camera from zooming out far enough to create far plane cutoff
-    controls.maxDistance = cameraToFarEdge * 2
-
-    controls.saveState()
-  } else {
-    camera.lookAt(center)
-  }
+  camera.position.set(
+    (camera.position.x * endDistance) / startDistance,
+    (camera.position.y * endDistance) / startDistance,
+    (camera.position.z * endDistance * 0.9) / startDistance
+  )
+  camera.lookAt(center)
 }
 const scene = new THREE.Scene()
 
@@ -59,48 +47,17 @@ camera.position.z = 3
 const renderer = new THREE.WebGLRenderer()
 renderer.outputEncoding = THREE.sRGBEncoding
 renderer.setSize(window.innerWidth / 2.5, window.innerHeight / 2.5)
-document.getElementById("lightbox").appendChild(renderer.domElement)
 
 const controls = new OrbitControls(camera, renderer.domElement)
 controls.enableDamping = true
 
-const material = new THREE.PointsMaterial({ color: 0xffffff, size: 0.25 })
+const material = new THREE.PointsMaterial({ color: 0xffffff, size: 1 })
 
 let geometry = new THREE.TorusGeometry(10, 3, 16, 100)
 let mesh = new THREE.Points(geometry, material)
-const loader = new OBJLoader()
-/*loader.load(
-  "https://github.com/willallstet/lasercut3dPrint/blob/main/frontend/src/assets/cone.stl/cone.stl",
-  function (geometry) {
-    let material = new THREE.PointsMaterial({ color: 0xffffff, size: 0.25 })
-    const mesh = new THREE.Mesh(geometry, material)
-    scene.add(mesh)
-  },
-  (xhr) => {
-    console.log((xhr.loaded / xhr.total) * 100 + "% loaded")
-  },
-  (error) => {
-    console.log(error)
-  }
-)*/
-loader.load(
-  "https://cdn.glitch.com/fcf3c007-b4eb-4250-ba6b-653fdab94ce3%2Fjapanese_temple.obj?1558792651869",
-  (obj) => {
-    // the request was successfull
-    mesh = new THREE.Points(obj.children[0].geometry, material)
-    mesh.position.y = -15 //this model is not exactly in the middle by default so I moved it myself
-    scene.add(mesh)
-    fitCameraToObject(camera, mesh, 50)
-  },
-  (xhr) => {
-    // the request is in progress
-    console.log(xhr)
-  },
-  (err) => {
-    // something went wrong
-    console.error("loading .obj went wrong, ", err)
-  }
-)
+scene.add(mesh)
+fitCameraToObject(camera, mesh)
+document.getElementById("lightbox").appendChild(renderer.domElement)
 window.addEventListener("resize", onWindowResize, false)
 function onWindowResize() {
   camera.aspect = window.innerWidth / window.innerHeight
@@ -108,8 +65,36 @@ function onWindowResize() {
   renderer.setSize(window.innerWidth / 2.5, window.innerHeight / 2.5)
   render()
 }
+export function changeMesh(fileLoc) {
+  scene.remove(scene.children[0])
+  const loader = new OBJLoader()
+  loader.load(
+    fileLoc,
+    (obj) => {
+      // the request was successfull
+      let mesh = new THREE.Points(obj.children[0].geometry, material)
+      mesh.position.y = -15 //this model is not exactly in the middle by default so I moved it myself
+      fitCameraToObject(camera, mesh)
+      mesh.material = new THREE.PointsMaterial({
+        color: 0xffffff,
+        size: 1,
+      })
+      scene.add(mesh)
+    },
+    (xhr) => {
+      // the request is in progress
+      console.log(xhr)
+    },
+    (err) => {
+      // something went wrong
+      console.error("loading .obj went wrong, ", err)
+    }
+  )
+}
 
 export function animate() {
+  mesh.rotation.y += 0.001
+  mesh.rotation.x += 0.005
   requestAnimationFrame(animate)
 
   controls.update()

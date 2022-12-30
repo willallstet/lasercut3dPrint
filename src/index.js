@@ -5,12 +5,24 @@ import App from './App';
 import reportWebVitals from './reportWebVitals';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
+
 root.render(
   <React.StrictMode>
     <App />
   </React.StrictMode>
-);
+)
 
+/*console.log("??")
+const inputElement = document.getElementById("input")
+console.log(inputElement)
+if (inputElement !== null) {
+  inputElement.addEventListener("change", handleFiles, false)
+}
+
+function handleFiles() {
+  const selectedFile = document.getElementById("inputLoc").files[0]
+  console.log(selectedFile)
+}*/
 // If you want to start measuring performance in your app, pass a function
 // to log results (for example: reportWebVitals(console.log))
 // or send to an analytics endpoint. Learn more: https://bit.ly/CRA-vitals
