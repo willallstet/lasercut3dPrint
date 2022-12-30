@@ -1,0 +1,47 @@
+.App {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  background-color: black;
+  color: white;
+}
+.uploadText{
+  width: 100vw;
+  font-size: xx-large;
+  padding: 1%;
+}
+
+button {
+  background-color: black;
+  border: dashed;
+  border-color: white;
+  color: white;
+  border-radius: 5px;
+  text-align: center;
+  font-size: large;
+}
+
+.footer{
+  position: absolute;
+  padding: 1%;
+  bottom: 0;
+  right: 0;
+}
+
+a:active{
+  color: white;
+}
+
+a:link{
+  color: white;
+}
+
+a:visited{
+  color: white;
+}
+
+a:hover{
+  font-style: italic;
+  cursor: pointer;
+}

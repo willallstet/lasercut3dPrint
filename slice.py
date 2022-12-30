@@ -7,7 +7,7 @@ import numpy as np
 
 while True: #get filepath
   filePath = input("Enter the filepath of the STL to slice: ")
-  if filePath[-4:] != ".stl":
+  if filePath[-4:] != ".stl" and filePath[-4:] != ".obj":
     print("Sorry it must be an STL file")
     continue
   if path.isfile(filePath):
